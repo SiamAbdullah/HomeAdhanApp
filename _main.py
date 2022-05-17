@@ -11,16 +11,15 @@ import signal
 shouldRunning = True
 
 def playAzanOnce(prayerInfo: PrayerTime.PTime, zone, urlPath:str):
-    # stop the currently playing in Soundbar
-    zone.stop()
     print(prayerInfo.PrayerName, "is due. Playing azan", urlPath)
 
     number_in_queue = zone.add_uri_to_queue(urlPath)
-    zone.volume = 60
+    zone.volume = 55
     # play_from_queue indexes are 0-based
     zone.play_from_queue(number_in_queue - 1)
     sleep(180)
     prayerInfo.IsPlayed = True
+    print("Adhan is played successfully")
     return schedule.CancelJob
 
 def main(networkName: str, city: str, country: str, method:int, school:1, port:int):
@@ -47,10 +46,6 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
     currentJob:PrayerTime.PTime = None
 
     while shouldRunning:
-
-        if currentJob != None and currentJob.IsPlayed == False:
-            sleep(1800) # sleep 30 mins
-
         # if the queue is empty then try to fetch next day information
         if len(remainingPrayerQueue) == 0:
             remainingPrayerQueue = prayerInformation.fetch().getRemainingTodaySalah();
@@ -65,10 +60,10 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
         # remainingPrayerQueue is not empty now schedule for play Azan
         azanSoundUrl = "http://{}:{}/{}".format(currentMachineIpAddress, port, currentJob.AdhanFileName)
         print(currentJob.PrayerName, currentJob.TimeAsString, azanSoundUrl)
-        schedule.every().day.at(currentJob.TimeAsString).do(playAzanOnce, currentJob, zone, azanSoundUrl)
-        while shouldRunning:
+        schedule.every().day.at("22:20").do(playAzanOnce, currentJob, zone, azanSoundUrl)
+        while currentJob.IsPlayed == False:
             schedule.run_pending()
-            sleep(120) #sleep 2 mins
+            sleep(10) #sleep 2 mins
 
     schedule.clear()
     server.stop();
