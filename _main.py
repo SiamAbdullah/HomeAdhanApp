@@ -52,7 +52,8 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
 
         # if remainingPrayerQueue is still empty then sleep 30 mins
         if len(remainingPrayerQueue) == 0:
-            sleep(1800) # sleep for 1 hour
+            print("There is no prayer today so going to sleep for 1 hour")
+            sleep(3600) # sleep for 1 hour
             continue
 
         currentJob = remainingPrayerQueue.pop(0)
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('-name', type=str, help='Soundbar Network Name', default=None)
     parser.add_argument('-city', type=str, help='Soundbar Network Name', default="Seattle")
     parser.add_argument('-country', type=str, help='Soundbar Network Name', default="USA")
-    parser.add_argument('-method', type=int, help='Soundbar Network Name', default=1)
+    parser.add_argument('-method', type=int, help='Soundbar Network Name', default=2) # 2 means Islamic Society of North America (ISNA)
     parser.add_argument('-school', type=int, help='Soundbar Network Name', default=1)
     parser.add_argument('-port', type=int, help='ServerPot', default=8000)
     args = parser.parse_args()
