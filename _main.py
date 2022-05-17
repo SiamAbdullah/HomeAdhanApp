@@ -60,7 +60,7 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
         # remainingPrayerQueue is not empty now schedule for play Azan
         azanSoundUrl = "http://{}:{}/{}".format(currentMachineIpAddress, port, currentJob.AdhanFileName)
         print(currentJob.PrayerName, currentJob.TimeAsString, azanSoundUrl)
-        schedule.every().day.at("22:20").do(playAzanOnce, currentJob, zone, azanSoundUrl)
+        schedule.every().day.at(currentJob.TimeAsString).do(playAzanOnce, currentJob, zone, azanSoundUrl)
         while currentJob.IsPlayed == False:
             schedule.run_pending()
             sleep(10) #sleep 2 mins
