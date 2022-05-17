@@ -52,7 +52,8 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
 
         # if remainingPrayerQueue is still empty then sleep 30 mins
         if len(remainingPrayerQueue) == 0:
-            sleep(1800) # sleep for 1 hour
+            print("There is no prayer today so going to sleep for 1 hour")
+            sleep(3600) # sleep for 1 hour
             continue
 
         currentJob = remainingPrayerQueue.pop(0)
