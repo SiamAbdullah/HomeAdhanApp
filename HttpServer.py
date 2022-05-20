@@ -4,7 +4,7 @@ from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 from threading import Thread
 
-class HttpRequestHandler(SimpleHTTPRequestHandler):
+class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
     extensions_map = {
         '': 'application/octet-stream',
         '.manifest': 'text/cache-manifest',
@@ -19,6 +19,13 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         '.xml': 'application/xml',
     }
 
+    def do_GET(self):
+        try:
+            SimpleHTTPRequestHandler.do_GET(self)
+        except Exception as e:
+            print("Get Request error: " + e)
+        return
+
 
 class HttpServer(Thread):
     """A simple HTTP Server in its own thread"""
@@ -26,8 +33,8 @@ class HttpServer(Thread):
     def __init__(self, port):
         super().__init__()
         self.daemon = True
-        handler = HttpRequestHandler
-        self.httpd = TCPServer(("", port), handler)
+        self.httpd = TCPServer(("", port), CustomHttpRequestHandler)
+        self.isAlive=True
 
     def run(self):
         """Start the server"""
