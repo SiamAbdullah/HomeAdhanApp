@@ -13,12 +13,13 @@ shouldRunning = True
 def playAzanOnce(prayerInfo: PrayerTime.PTime, zone, urlPath:str):
     print(prayerInfo.PrayerName, "is due. Playing azan", urlPath)
 
+    prayerInfo.IsPlayed = True
     number_in_queue = zone.add_uri_to_queue(urlPath)
     zone.volume = 55
     # play_from_queue indexes are 0-based
     zone.play_from_queue(number_in_queue - 1)
-    sleep(180)
-    prayerInfo.IsPlayed = True
+    sleep(240)
+    zone.stop()
     print("Adhan is played successfully")
     return schedule.CancelJob
 
