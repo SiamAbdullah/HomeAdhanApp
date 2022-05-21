@@ -1,5 +1,6 @@
 from threading import Thread
 from time import sleep
+from xmlrpc.client import boolean
 import schedule
 import SonosNetwork
 import PrayerTime
@@ -23,7 +24,7 @@ def playAzanOnce(prayerInfo: PrayerTime.PTime, zone, urlPath:str):
     print("Adhan is played successfully")
     return schedule.CancelJob
 
-def main(networkName: str, city: str, country: str, method:int, school:1, port:int):
+def main(networkName: str, city: str, country: str, method:int, school:1, port:int, enableFileServer:bool):
 
     """ if the zone is provided by comand line argument then initialize networkName with it.
      if the zon is found then we'll have soco object of the network device. """
@@ -36,8 +37,9 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
     print("Found the Soundbar network :", zone)
 
     # create server to stream Azan to Soundbar
-    server = HttpServer.HttpServer(port)
-    server.start()
+    if (enableFileServer):
+        server = HttpServer.HttpServer(port)
+        server.start()
 
     """ Get the current machine local ip address."""
     currentMachineIpAddress = SonosNetwork.detect_ip_address();
@@ -68,7 +70,9 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
             sleep(10) #sleep 2 mins
 
     schedule.clear()
-    server.stop();
+    if enableFileServer:
+        server.stop();
+
     print("Shutting down the Azan App")
 
 def shutdownHandler(signal_received, frame):
@@ -86,10 +90,11 @@ if __name__ == "__main__":
     parser.add_argument('-method', type=int, help='Soundbar Network Name', default=2) # 2 means Islamic Society of North America (ISNA)
     parser.add_argument('-school', type=int, help='Soundbar Network Name', default=1)
     parser.add_argument('-port', type=int, help='ServerPot', default=8000)
+    parser.add_argument('-enableFileServer', type=bool, help='Should Enable File server', default=False)
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, shutdownHandler)
-    mainThread = Thread(target=main, args=(args.name, args.city, args.country, args.method, args.school,args.port))
+    mainThread = Thread(target=main, args=(args.name, args.city, args.country, args.method, args.school,args.port, args.enableFileServer))
     mainThread.run()
     while True:
         # Do nothing and hog CPU forever until SIGINT received.
