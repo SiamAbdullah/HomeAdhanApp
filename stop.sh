@@ -1,0 +1,2 @@
+#!/bin/bash
+kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk '{print $2}')

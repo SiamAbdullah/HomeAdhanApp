@@ -36,11 +36,6 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
 
     print("Found the Soundbar network :", zone)
 
-    # create server to stream Azan to Soundbar
-    if (enableFileServer):
-        server = HttpServer.HttpServer(port)
-        server.start()
-
     """ Get the current machine local ip address."""
     currentMachineIpAddress = SonosNetwork.detect_ip_address();
 
@@ -94,8 +89,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, shutdownHandler)
+    # create server to stream Azan to Soundbar
+    server = None
+    if (args.enableFileServer):
+        server = HttpServer.HttpServer(args.port)
+        server.start()
+
     mainThread = Thread(target=main, args=(args.name, args.city, args.country, args.method, args.school,args.port, args.enableFileServer))
     mainThread.run()
-    while True:
+    while shouldRunning:
         # Do nothing and hog CPU forever until SIGINT received.
         pass
+
+    if args.enableFileServer and server != None:
+        server.stop()
