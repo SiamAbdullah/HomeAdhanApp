@@ -11,12 +11,14 @@ import signal
 
 shouldRunning = True
 
-def playAzanOnce(prayerInfo: PrayerTime.PTime, zone, urlPath:str):
+def playAzanOnce(prayerInfo: PrayerTime.PTime, networkName:str, urlPath:str):
     print(prayerInfo.PrayerName, "is due. Playing azan", urlPath)
 
     prayerInfo.IsPlayed = True
+    zone = SonosNetwork.getZone(networkName)
+    zone.volume = 60
     number_in_queue = zone.add_uri_to_queue(urlPath)
-    zone.volume = 55
+
     # play_from_queue indexes are 0-based
     zone.play_from_queue(number_in_queue - 1)
     sleep(240)
@@ -26,6 +28,9 @@ def playAzanOnce(prayerInfo: PrayerTime.PTime, zone, urlPath:str):
 
 def main(networkName: str, city: str, country: str, method:int, school:1, port:int, enableFileServer:bool):
 
+    """ Get the current machine local ip address."""
+    currentMachineIpAddress = SonosNetwork.detect_ip_address();
+
     """ if the zone is provided by comand line argument then initialize networkName with it.
      if the zon is found then we'll have soco object of the network device. """
     zone = SonosNetwork.getZone(networkName)
@@ -34,10 +39,7 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
         print("Could not find the Soundbar network ", networkName, ". Exiting the program.")
         return
 
-    print("Found the Soundbar network :", zone)
-
-    """ Get the current machine local ip address."""
-    currentMachineIpAddress = SonosNetwork.detect_ip_address();
+    networkName = zone.player_name
 
     prayerInformation = PrayerTime.PrayerTimeFetcher(country, city, method, school)
     remainingPrayerQueue = []
@@ -59,15 +61,12 @@ def main(networkName: str, city: str, country: str, method:int, school:1, port:i
         # remainingPrayerQueue is not empty now schedule for play Azan
         azanSoundUrl = "http://{}:{}/{}".format(currentMachineIpAddress, port, currentJob.AdhanFileName)
         print(currentJob.PrayerName, currentJob.TimeAsString, azanSoundUrl)
-        schedule.every().day.at(currentJob.TimeAsString).do(playAzanOnce, currentJob, zone, azanSoundUrl)
+        schedule.every().day.at(currentJob.TimeAsString).do(playAzanOnce, currentJob, networkName, azanSoundUrl)
         while currentJob.IsPlayed == False:
             schedule.run_pending()
             sleep(10) #sleep 2 mins
 
     schedule.clear()
-    if enableFileServer:
-        server.stop();
-
     print("Shutting down the Azan App")
 
 def shutdownHandler(signal_received, frame):
