@@ -16,13 +16,14 @@ def playAzanOnce(prayerInfo: PrayerTime.PTime, networkName:str, urlPath:str):
 
     prayerInfo.IsPlayed = True
     zone = SonosNetwork.getZone(networkName)
+    print(zone)
     zone.volume = 60
     number_in_queue = zone.add_uri_to_queue(urlPath)
 
     # play_from_queue indexes are 0-based
     zone.play_from_queue(number_in_queue - 1)
-    sleep(240)
-    zone.stop()
+    sleep(120)
+    #zone.stop()
     print("Adhan is played successfully")
     return schedule.CancelJob
 
@@ -75,6 +76,10 @@ def shutdownHandler(signal_received, frame):
     shouldRunning = False
     exit(1)
 
+def TestPlayAzan():
+    azanSoundUrl = "http://{}:{}/{}".format(SonosNetwork.detect_ip_address(), args.port, "Adhan.mp3")
+    playAzanOnce(PrayerTime.PTime("Zuhr", "01:12"), "Living Room Sono", azanSoundUrl )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -84,21 +89,27 @@ if __name__ == "__main__":
     parser.add_argument('-method', type=int, help='Soundbar Network Name', default=2) # 2 means Islamic Society of North America (ISNA)
     parser.add_argument('-school', type=int, help='Soundbar Network Name', default=1)
     parser.add_argument('-port', type=int, help='ServerPot', default=8000)
-    parser.add_argument('-enableFileServer', type=bool, help='Should Enable File server', default=False)
+    parser.add_argument('-enableFileServer', type=bool, help='Should Enable File server', default=True)
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, shutdownHandler)
     # create server to stream Azan to Soundbar
     server = None
-    if (args.enableFileServer):
-        server = HttpServer.HttpServer(args.port)
-        server.start()
+    try:
+        server = None
+        if (args.enableFileServer):
+            server = HttpServer.HttpServer(args.port)
+            server.start()
 
-    mainThread = Thread(target=main, args=(args.name, args.city, args.country, args.method, args.school,args.port, args.enableFileServer))
-    mainThread.run()
-    while shouldRunning:
-        # Do nothing and hog CPU forever until SIGINT received.
-        pass
+        main(args.name, args.city, args.country, args.method, args.school,args.port, args.enableFileServer)
+        #mainThread = Thread(target=main, args=(args.name, args.city, args.country, args.method, args.school,args.port, args.enableFileServer))
+        #mainThread.run()
+        #while shouldRunning:
+            # Do nothing and hog CPU forever until SIGINT received.
+        #    pass
 
-    if args.enableFileServer and server != None:
-        server.stop()
+    except:
+        print("Exception occured")
+    finally:
+        if args.enableFileServer and server != None:
+            server.stop()
